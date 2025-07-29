@@ -559,7 +559,7 @@ function App() {
                         transition={{ duration: 0.5, delay: 0.4 }}
                         viewport={{ once: true }}
                       >
-                        50+
+                        10+
                       </motion.div>
                       <div className="text-sm text-muted-foreground">Projects Completed</div>
                     </motion.div>
