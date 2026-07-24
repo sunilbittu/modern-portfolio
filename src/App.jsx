@@ -1,1004 +1,600 @@
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
-import { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/button.jsx'
-import { Card } from '@/components/ui/card.jsx'
-import { Badge } from '@/components/ui/badge.jsx'
-import { Progress } from '@/components/ui/progress.jsx'
-import ParticleBackground from './components/ParticleBackground.jsx'
-import FloatingTechIcons from './components/FloatingTechIcons.jsx'
-import TypewriterText from './components/TypewriterText.jsx'
+import { useEffect, useId, useState } from 'react'
+import { motion as Motion, useReducedMotion, useScroll, useSpring } from 'framer-motion'
 import profileImage from './assets/profile-image.png'
-import projectNewRelic from './assets/project-newrelic.png'
-import projectMobile from './assets/project-mobile.png'
-import projectDashboard from './assets/project-dashboard.png'
-import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  ExternalLink, 
-  Code2, 
-  Smartphone, 
-  Database, 
-  Cloud,
-  Award,
-  MapPin,
-  Phone,
-  ChevronDown,
-  Menu,
-  X,
-  MousePointer2,
-  Eye,
-  Star
-} from 'lucide-react'
+import projectNewRelic from './assets/project-newrelic.avif'
 import './App.css'
 
+const navItems = [
+  ['work', 'Selected work'],
+  ['case-files', 'Case files'],
+  ['experience', 'Experience'],
+  ['contact', 'Contact'],
+]
+
+const projects = [
+  {
+    number: '01',
+    title: 'Dispatch to doorstep',
+    client: 'Shyft',
+    period: '2020 - 2021',
+    visual: 'shyft',
+    summary:
+      'A point-to-point logistics system built in a startup environment, connecting the people booking deliveries with the drivers completing them.',
+    details: ['Major startup contribution', 'React Native', 'End-to-end delivery'],
+    href: '#shyft-case',
+  },
+  {
+    number: '02',
+    title: 'Hotels, managed at scale',
+    client: 'Cleartrip + Flyin',
+    period: '2014 - 2021',
+    visual: 'hotel',
+    summary:
+      'A complete hotel CMS and supporting APIs for storing, managing and serving hotel information into customer-facing travel products.',
+    details: ['Complete CMS ownership', 'Hotel data APIs', 'Travel platforms'],
+    href: '#hotel-cms-case',
+  },
+  {
+    number: '03',
+    title: 'APM, made legible',
+    client: 'New Relic',
+    period: '2022 - now',
+    image: projectNewRelic,
+    alt: 'New Relic application performance monitoring interface',
+    summary:
+      'Reusable React systems for a dense observability product, shaped around faster diagnosis and consistent interaction at enterprise scale.',
+    details: ['React + TypeScript', 'Redux architecture', 'Performance systems'],
+  },
+]
+
+const caseStudies = [
+  {
+    id: 'shyft-case',
+    index: 'CASE 01 / LOGISTICS',
+    title: 'Shyft connected both sides of a delivery.',
+    lead:
+      'At an early-stage startup, I was a major contributor to a point-to-point logistics system spanning the shipper and driver experience.',
+    visual: 'shyft',
+    facts: [
+      ['Product', 'Point-to-point delivery system'],
+      ['Surfaces', 'Shyft Shipper + Shyft Driver'],
+      ['Environment', 'Early-stage startup'],
+      ['Contribution', 'Major, end-to-end'],
+    ],
+    sections: [
+      {
+        title: 'The product problem',
+        body:
+          'A delivery is one transaction experienced by two different people. The shipper needs a clear way to initiate and understand the job. The driver needs a focused product for carrying it through. Those surfaces must stay coherent as one operational system.',
+      },
+      {
+        title: 'My contribution',
+        body:
+          'I contributed across the end-to-end development of both mobile products, working beyond an isolated feature area. In a startup setting, that meant helping turn the operating model into software and carrying implementation through to usable product flows.',
+      },
+      {
+        title: 'What this demonstrates',
+        body:
+          'Product ownership under ambiguity, React Native delivery, coordination across connected user journeys, and the ability to move between interface detail and the wider system.',
+      },
+    ],
+    flow: ['Delivery request', 'Shipper experience', 'Shared operation', 'Driver execution'],
+  },
+  {
+    id: 'hotel-cms-case',
+    index: 'CASE 02 / TRAVEL',
+    title: 'The hotel experience started behind the scenes.',
+    lead:
+      'For Cleartrip and Flyin, I built the complete hotel content management system and the supporting services used to manage hotel information.',
+    visual: 'hotel',
+    facts: [
+      ['Product', 'Hotel content management system'],
+      ['Companies', 'Cleartrip + Flyin'],
+      ['Connected work', 'Mobile hotel experiences'],
+      ['Contribution', 'Complete system build'],
+    ],
+    sections: [
+      {
+        title: 'The product problem',
+        body:
+          'Customer-facing hotel journeys are only as dependable as the operational data behind them. Hotel information needed a dedicated system where teams could store and manage it consistently before it reached booking experiences.',
+      },
+      {
+        title: 'My contribution',
+        body:
+          'I built the complete hotel CMS and developed backend APIs for storing and managing hotel information. I also worked on hotel modules for the Cleartrip and Flyin mobile products, connecting operational tooling with the customer experience it supported.',
+      },
+      {
+        title: 'What this demonstrates',
+        body:
+          'Full-stack ownership, data-backed product thinking, long-lived travel-domain experience, and the ability to build internal operational software as carefully as customer-facing applications.',
+      },
+    ],
+    flow: ['Hotel information', 'CMS operations', 'Backend APIs', 'Mobile booking experience'],
+  },
+]
+
+const roles = [
+  {
+    years: '2022 - now',
+    company: 'New Relic',
+    role: 'Senior Software Engineer',
+    note: 'Building reusable APM experiences and improving performance across a complex observability platform.',
+  },
+  {
+    years: '2021 - 2023',
+    company: 'Accenture',
+    role: 'Application Development Team Lead',
+    note: 'Led front-end architecture and component strategy for enterprise client products.',
+  },
+  {
+    years: '2020 - 2021',
+    company: 'Shyft Innovations',
+    role: 'Software Engineer',
+    note: 'Major contributor to a point-to-point delivery system, building Shyft Shipper and Shyft Driver end to end.',
+  },
+  {
+    years: '2014 - 2021',
+    company: 'Cleartrip + Flyin',
+    role: 'Software Engineer',
+    note: 'Built a complete hotel CMS, supporting APIs and mobile hotel experiences across two travel platforms.',
+  },
+]
+
+const strengths = [
+  ['Product engineering', 'Translate complicated product requirements into interfaces people can understand quickly.'],
+  ['Front-end systems', 'Build durable React and React Native foundations that teams can extend with confidence.'],
+  ['Performance', 'Treat speed, rendering behavior and interaction quality as core product features.'],
+  ['Technical leadership', 'Create alignment through clear architecture, pragmatic decisions and hands-on delivery.'],
+]
+
+function Arrow({ direction = 'out' }) {
+  return (
+    <svg aria-hidden="true" className="arrow" viewBox="0 0 20 20">
+      {direction === 'down' ? (
+        <path d="M10 3v12m0 0 5-5m-5 5-5-5" />
+      ) : (
+        <path d="M5 15 15 5m0 0H7m8 0v8" />
+      )}
+    </svg>
+  )
+}
+
+function Mark() {
+  return (
+    <svg aria-hidden="true" className="mark" viewBox="0 0 38 38">
+      <path d="M5 6h19l9 9v17H14l-9-9z" />
+      <path d="m12 23 6-12 7 12M14.5 19h8" />
+    </svg>
+  )
+}
+
+function SystemDiagram({ type, compact = false }) {
+  const titleId = useId()
+
+  if (type === 'hotel') {
+    return (
+      <svg
+        className={`system-diagram hotel-diagram ${compact ? 'is-compact' : ''}`}
+        viewBox="0 0 1200 760"
+        role="img"
+        aria-labelledby={titleId}
+      >
+        <title id={titleId}>Hotel CMS system scope diagram</title>
+        <rect className="diagram-surface" x="28" y="28" width="1144" height="704" rx="0" />
+        <text className="diagram-label" x="66" y="82">HOTEL INFORMATION SYSTEM / OPERATIONAL VIEW</text>
+        <text className="diagram-ref" x="1090" y="82">02</text>
+
+        <path className="diagram-route" d="M250 184H600V570H950" />
+        <circle className="diagram-node" cx="250" cy="184" r="10" />
+        <circle className="diagram-node" cx="600" cy="378" r="10" />
+        <circle className="diagram-node" cx="950" cy="570" r="10" />
+
+        <g transform="translate(68 132)">
+          <text className="diagram-kicker" x="0" y="0">OPERATIONS</text>
+          <text className="diagram-title" x="0" y="45">HOTEL CMS</text>
+          <rect className="diagram-block" x="0" y="76" width="365" height="278" />
+          <text className="diagram-key" x="28" y="122">HOTEL IDENTITY</text>
+          <text className="diagram-value" x="225" y="122">STRUCTURED</text>
+          <path className="diagram-rule" d="M28 146H337" />
+          <text className="diagram-key" x="28" y="183">LOCATION</text>
+          <text className="diagram-value" x="225" y="183">MANAGED</text>
+          <path className="diagram-rule" d="M28 207H337" />
+          <text className="diagram-key" x="28" y="244">CONTENT</text>
+          <text className="diagram-value" x="225" y="244">VALIDATED</text>
+          <path className="diagram-rule" d="M28 268H337" />
+          <text className="diagram-key" x="28" y="305">MEDIA + DETAILS</text>
+          <text className="diagram-value" x="225" y="305">PUBLISHED</text>
+        </g>
+
+        <g transform="translate(504 315)">
+          <text className="diagram-kicker" x="0" y="0">SERVICE LAYER</text>
+          <text className="diagram-title" x="0" y="45">HOTEL APIs</text>
+          <rect className="diagram-data" x="0" y="78" width="196" height="44" />
+          <rect className="diagram-data" x="0" y="134" width="242" height="44" />
+          <rect className="diagram-data" x="0" y="190" width="164" height="44" />
+        </g>
+
+        <g transform="translate(840 506)">
+          <text className="diagram-kicker" x="0" y="0">CUSTOMER PRODUCTS</text>
+          <text className="diagram-title" x="0" y="45">CLEARTRIP</text>
+          <text className="diagram-title diagram-title-secondary" x="0" y="90">FLYIN</text>
+          <text className="diagram-note" x="0" y="140">MOBILE HOTEL EXPERIENCES</text>
+        </g>
+      </svg>
+    )
+  }
+
+  return (
+    <svg
+      className={`system-diagram shyft-diagram ${compact ? 'is-compact' : ''}`}
+      viewBox="0 0 1200 760"
+      role="img"
+      aria-labelledby={titleId}
+    >
+      <title id={titleId}>Shyft point-to-point delivery system scope diagram</title>
+      <rect className="diagram-surface" x="28" y="28" width="1144" height="704" rx="0" />
+      <text className="diagram-label" x="66" y="82">SHYFT / POINT-TO-POINT DELIVERY SYSTEM</text>
+      <text className="diagram-ref" x="1090" y="82">01</text>
+
+      <path className="diagram-route diagram-route-main" d="M142 526C252 526 270 216 432 216S600 546 762 546 936 224 1063 224" />
+      <path className="diagram-route diagram-route-ghost" d="M142 570C294 570 310 304 452 304S610 626 790 626 902 312 1063 312" />
+
+      <g transform="translate(106 470)">
+        <circle className="diagram-node-large" cx="36" cy="56" r="36" />
+        <circle className="diagram-node-core" cx="36" cy="56" r="9" />
+        <text className="diagram-kicker" x="0" y="124">POINT A</text>
+        <text className="diagram-title" x="0" y="167">REQUEST</text>
+      </g>
+
+      <g transform="translate(356 132)">
+        <text className="diagram-kicker" x="0" y="0">PRODUCT 01</text>
+        <text className="diagram-title" x="0" y="47">SHIPPER</text>
+        <rect className="diagram-block" x="0" y="82" width="240" height="166" />
+        <path className="diagram-rule" d="M26 124H214M26 160H180M26 196H202" />
+        <text className="diagram-note" x="26" y="230">DELIVERY-SIDE FLOW</text>
+      </g>
+
+      <g transform="translate(617 442)">
+        <text className="diagram-kicker" x="0" y="0">SHARED OPERATION</text>
+        <text className="diagram-title" x="0" y="47">DELIVERY CORE</text>
+        <rect className="diagram-data" x="0" y="80" width="170" height="42" />
+        <rect className="diagram-data" x="182" y="80" width="108" height="42" />
+      </g>
+
+      <g transform="translate(842 138)">
+        <text className="diagram-kicker" x="0" y="0">PRODUCT 02</text>
+        <text className="diagram-title" x="0" y="47">DRIVER</text>
+        <rect className="diagram-block" x="0" y="82" width="218" height="166" />
+        <path className="diagram-rule" d="M26 124H192M26 160H152M26 196H178" />
+        <text className="diagram-note" x="26" y="230">EXECUTION-SIDE FLOW</text>
+      </g>
+
+      <g transform="translate(1027 168)">
+        <circle className="diagram-node-large" cx="36" cy="56" r="36" />
+        <circle className="diagram-node-core" cx="36" cy="56" r="9" />
+        <text className="diagram-kicker" x="-4" y="124">POINT B</text>
+      </g>
+    </svg>
+  )
+}
+
 function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState('hero')
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const heroRef = useRef(null)
-  
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [activeProject, setActiveProject] = useState(0)
+  const reduceMotion = useReducedMotion()
   const { scrollYProgress } = useScroll()
-  const yRange = useTransform(scrollYProgress, [0, 1], [0, 100])
-  const pathLength = useSpring(scrollYProgress, { stiffness: 400, damping: 90 })
+  const progress = useSpring(scrollYProgress, { stiffness: 160, damping: 28 })
 
-  // Mouse tracking for interactive effects
   useEffect(() => {
-    const updateMousePosition = (e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
+    const closeOnWide = () => {
+      if (window.innerWidth >= 820) setMenuOpen(false)
     }
-    
-    window.addEventListener('mousemove', updateMousePosition)
-    return () => window.removeEventListener('mousemove', updateMousePosition)
-  }, [])
-
-  // Navigation items
-  const navItems = [
-    { id: 'hero', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'contact', label: 'Contact' }
-  ]
-
-  // Skills data
-  const skills = [
-    { name: 'React/React Native', level: 95, category: 'Frontend' },
-    { name: 'JavaScript/TypeScript', level: 90, category: 'Language' },
-    { name: 'Node.js', level: 85, category: 'Backend' },
-    { name: 'HTML5/CSS3', level: 90, category: 'Frontend' },
-    { name: 'MongoDB', level: 80, category: 'Database' },
-    { name: 'MySQL', level: 75, category: 'Database' },
-    { name: 'Angular', level: 70, category: 'Frontend' },
-    { name: 'NextJS', level: 85, category: 'Framework' },
-    { name: 'ElasticSearch', level: 70, category: 'Search' },
-    { name: 'Azure', level: 75, category: 'Cloud' }
-  ]
-
-  // Experience data
-  const experiences = [
-    {
-      company: 'New Relic',
-      position: 'Senior Software Engineer',
-      duration: 'April 2022 - Present',
-      location: 'Hyderabad',
-      description: 'Involved in the development of reusable components for the Application Performance Management (APM) platform, significantly enhancing modularity and scalability. Played a key role in optimizing application performance and user experience, leveraging advanced techniques in React and state management using Redux.',
-      technologies: ['React', 'Redux', 'TypeScript', 'APM', 'Performance Optimization']
-    },
-    {
-      company: 'Accenture',
-      position: 'Application Development Team Lead',
-      duration: 'June 2021 - April 2023',
-      location: 'Hyderabad',
-      description: 'Worked as a FED UI developer for high-profile clients, playing a pivotal role in architecting and implementing scalable and reusable components, leading to enhanced application performance and user engagement. Championed the adoption of modern front-end frameworks and technologies.',
-      technologies: ['React', 'Angular', 'JavaScript', 'UI/UX', 'Team Leadership']
-    },
-    {
-      company: 'Shyft Innovations Pvt Ltd',
-      position: 'Software Engineer',
-      duration: 'February 2020 - May 2021',
-      location: 'Remote',
-      description: 'Contributed to the development of "Shyft Shipper" and "Shyft Driver" Mobile apps. Involved in end to end development of mobile applications.',
-      technologies: ['React Native', 'Mobile Development', 'Full Stack']
-    },
-    {
-      company: 'Cleartrip.com',
-      position: 'Software Engineer',
-      duration: 'April 2019 - May 2021',
-      location: 'Bengaluru',
-      description: 'Worked on Cleartrip Hotels modules for Cleartrip mobile application. Led the migration of a major Native script project to React Native, enhancing the application\'s performance and user experience.',
-      technologies: ['React Native', 'NativeScript', 'Mobile Apps', 'Hotels Booking']
-    },
-    {
-      company: 'Flyin.com',
-      position: 'Software Engineer',
-      duration: 'February 2014 - April 2019',
-      location: 'Hyderabad',
-      description: 'Developed Hotels and Flight+Hotels for the Flyin Mobile application. Developed backend APIs for storing and managing hotel information, and successfully implemented these APIs as a service for clients.',
-      technologies: ['Mobile Development', 'Backend APIs', 'Hotel Management', 'Client Services']
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setMenuOpen(false)
     }
-  ]
-
-  // Projects data
-  const projects = [
-    {
-      title: 'New Relic APM Platform',
-      description: 'Developed reusable React components for Application Performance Management platform, enhancing modularity and scalability for enterprise-level monitoring solutions.',
-      image: projectNewRelic,
-      technologies: ['React', 'Redux', 'TypeScript', 'D3.js', 'APM'],
-      category: 'Enterprise Software',
-      featured: true
-    },
-    {
-      title: 'Travel & Hotel Booking Apps',
-      description: 'Built comprehensive mobile applications for hotel booking and travel management, including Cleartrip Hotels and Flyin mobile apps with seamless user experience.',
-      image: projectMobile,
-      technologies: ['React Native', 'Node.js', 'MongoDB', 'REST APIs'],
-      category: 'Mobile Development',
-      featured: true
-    },
-    {
-      title: 'Enterprise Dashboard Solutions',
-      description: 'Created scalable dashboard solutions for high-profile clients at Accenture, focusing on data visualization and real-time analytics with modern UI frameworks.',
-      image: projectDashboard,
-      technologies: ['Angular', 'React', 'Chart.js', 'Azure', 'UI/UX'],
-      category: 'Web Development',
-      featured: true
+    window.addEventListener('resize', closeOnWide)
+    window.addEventListener('keydown', closeOnEscape)
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => {
+      window.removeEventListener('resize', closeOnWide)
+      window.removeEventListener('keydown', closeOnEscape)
+      document.body.style.overflow = ''
     }
-  ]
+  }, [menuOpen])
 
-  // Typewriter texts for hero section
-  const typewriterTexts = [
-    "Senior Software Engineer",
-    "React Native Expert",
-    "Full Stack Developer",
-    "Mobile App Specialist",
-    "Performance Optimizer"
-  ]
-
-  // Scroll to section function
-  const scrollToSection = (sectionId) => {
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setIsMenuOpen(false)
-    }
+  const goTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' })
+    setMenuOpen(false)
   }
 
-  // Animation variants
-  const fadeInUp = {
-    initial: { opacity: 0, y: 60 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.6 }
-  }
+  const selected = projects[activeProject]
 
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const floatingAnimation = {
-    animate: {
-      y: [0, -20, 0],
-      transition: {
-        duration: 3,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  }
-
-  const glowEffect = {
-    initial: { boxShadow: "0 0 0 rgba(34, 197, 94, 0)" },
-    hover: { 
-      boxShadow: "0 0 30px rgba(34, 197, 94, 0.3)",
-      scale: 1.05,
-      transition: { duration: 0.3 }
+  const handleProjectKeyDown = (event, index) => {
+    let nextIndex = index
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % projects.length
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + projects.length) % projects.length
+    if (event.key === 'Home') nextIndex = 0
+    if (event.key === 'End') nextIndex = projects.length - 1
+    if (nextIndex !== index) {
+      event.preventDefault()
+      setActiveProject(nextIndex)
+      document.getElementById(`project-tab-${nextIndex}`)?.focus()
     }
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
-      {/* Custom cursor effect */}
-      <motion.div
-        className="fixed w-6 h-6 bg-primary/20 rounded-full pointer-events-none z-50 mix-blend-difference"
-        animate={{
-          x: mousePosition.x - 12,
-          y: mousePosition.y - 12,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 500,
-          damping: 28
-        }}
-      />
+    <div className="site-shell">
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <Motion.div className="scroll-progress" style={{ scaleX: progress }} />
 
-      {/* Scroll progress indicator */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-primary/30 z-50"
-        style={{ scaleX: pathLength, transformOrigin: "0%" }}
-      />
+      <header className="site-header">
+        <button className="brand" onClick={() => goTo('top')} aria-label="Go to top">
+          <Mark />
+          <span>
+            Sunil
+            <small>software engineer</small>
+          </span>
+        </button>
 
-      {/* Navigation */}
-      <motion.nav 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="fixed top-0 left-0 right-0 z-40 glass-effect"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <motion.div 
-              whileHover={{ scale: 1.1, rotate: 360 }}
-              transition={{ duration: 0.5 }}
-              className="font-bold text-xl gradient-text cursor-pointer"
-              onClick={() => scrollToSection('hero')}
-            >
-              SB
-            </motion.div>
-            
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-8">
-              {navItems.map((item, index) => (
-                <motion.button
-                  key={item.id}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`text-sm font-medium transition-colors hover:text-primary relative ${
-                    activeSection === item.id ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-                >
-                  {item.label}
-                  {activeSection === item.id && (
-                    <motion.div
-                      layoutId="activeSection"
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary"
-                    />
-                  )}
-                </motion.button>
-              ))}
-            </div>
+        <nav className="desktop-nav" aria-label="Primary navigation">
+          {navItems.map(([id, label]) => (
+            <button key={id} onClick={() => goTo(id)}>
+              {label}
+            </button>
+          ))}
+        </nav>
 
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <motion.div whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                  <motion.div
-                    animate={{ rotate: isMenuOpen ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                  </motion.div>
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </div>
+        <a className="availability" href="mailto:pavanksunil@gmail.com">
+          Start a conversation <Arrow />
+        </a>
 
-        {/* Mobile Navigation */}
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ 
-            opacity: isMenuOpen ? 1 : 0, 
-            height: isMenuOpen ? 'auto' : 0 
-          }}
-          transition={{ duration: 0.3 }}
-          className="md:hidden bg-card/95 backdrop-blur-md border-t border-border/50 overflow-hidden"
+        <button
+          className="menu-trigger"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
         >
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            animate={isMenuOpen ? "animate" : "initial"}
-            className="px-4 py-2 space-y-2"
-          >
-            {navItems.map((item, index) => (
-              <motion.button
-                key={item.id}
-                variants={fadeInUp}
-                onClick={() => scrollToSection(item.id)}
-                className="block w-full text-left px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              >
-                {item.label}
-              </motion.button>
-            ))}
-          </motion.div>
-        </motion.div>
-      </motion.nav>
+          <span>{menuOpen ? 'Close' : 'Menu'}</span>
+          <span className={`menu-glyph ${menuOpen ? 'is-open' : ''}`} aria-hidden="true" />
+        </button>
 
-      {/* Hero Section */}
-      <section id="hero" ref={heroRef} className="min-h-screen flex items-center justify-center particle-bg hero-gradient relative">
-        <ParticleBackground />
-        <FloatingTechIcons />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-          >
-            <motion.h1 
-              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <motion.span 
-                className="gradient-text inline-block"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                Sunil Bhuvanapalli
-              </motion.span>
-            </motion.h1>
-            
-            <motion.div 
-              className="text-xl md:text-2xl text-muted-foreground mb-8 h-16 flex items-center justify-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <TypewriterText 
-                texts={typewriterTexts}
-                className="font-semibold"
-                speed={100}
-                deleteSpeed={50}
-                pauseTime={2000}
-              />
-              <span className="ml-2 text-primary">at New Relic</span>
-            </motion.div>
-            
-            <motion.p 
-              className="text-lg md:text-xl text-muted-foreground mb-12 max-w-3xl mx-auto"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-            >
-              Crafting Digital Experiences with Code & Creativity. 
-              Passionate about building scalable, user-centric applications with modern web technologies.
-            </motion.p>
-            
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-            >
-              <motion.div
-                variants={glowEffect}
-                initial="initial"
-                whileHover="hover"
-              >
-                <Button 
-                  size="lg" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground relative overflow-hidden group"
-                  onClick={() => scrollToSection('projects')}
-                >
-                  <motion.span
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                    initial={{ x: "-100%" }}
-                    whileHover={{ x: "100%" }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <span className="relative z-10">View My Work</span>
-                </Button>
-              </motion.div>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => scrollToSection('contact')}
-                  className="border-primary/50 hover:border-primary hover:bg-primary/10"
-                >
-                  Get In Touch
-                </Button>
-              </motion.div>
-            </motion.div>
-            
-            <motion.div 
-              className="flex justify-center space-x-6 mt-12"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-            >
-              {[
-                { Icon: Github, href: "https://github.com/sunilbhuvanapalli", delay: 0 },
-                { Icon: Linkedin, href: "https://linkedin.com/in/sunilbhuvanapalli", delay: 0.1 },
-                { Icon: Mail, href: "mailto:pavanksunil@gmail.com", delay: 0.2 }
-              ].map(({ Icon, href, delay }, index) => (
-                <motion.a
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.0 + delay }}
-                  whileHover={{ 
-                    scale: 1.2, 
-                    y: -5,
-                    boxShadow: "0 10px 25px rgba(34, 197, 94, 0.3)"
-                  }}
-                  whileTap={{ scale: 0.9 }}
-                  href={href}
-                  target={href.startsWith('mailto:') ? '_self' : '_blank'}
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-colors p-3 rounded-full hover:bg-primary/10"
-                >
-                  <Icon className="h-6 w-6" />
-                </motion.a>
-              ))}
-            </motion.div>
-          </motion.div>
+        <div id="mobile-navigation" className={`mobile-nav ${menuOpen ? 'is-open' : ''}`}>
+          {navItems.map(([id, label], index) => (
+            <button key={id} onClick={() => goTo(id)}>
+              <span>0{index + 1}</span>
+              {label}
+            </button>
+          ))}
+          <a href="mailto:pavanksunil@gmail.com">pavanksunil@gmail.com</a>
         </div>
-        
-        {/* Scroll indicator with enhanced animation */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-          variants={floatingAnimation}
-          animate="animate"
-        >
-          <motion.div
-            whileHover={{ scale: 1.2 }}
-            className="cursor-pointer"
-            onClick={() => scrollToSection('about')}
-          >
-            <ChevronDown className="h-8 w-8 text-primary animate-pulse" />
-          </motion.div>
-        </motion.div>
-      </section>
+      </header>
 
-      {/* About Section with enhanced animations */}
-      <section id="about" className="py-20 bg-card/20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <motion.h2 
-              className="text-3xl md:text-4xl font-bold mb-4"
-              whileInView={{ 
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              style={{
-                background: "linear-gradient(90deg, #22c55e, #a855f7, #22c55e)",
-                backgroundSize: "200% 100%",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent"
-              }}
-            >
-              About Me
-            </motion.h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Dedicated and skilled Senior Software Engineer with a strong background in mobile app and web development, 
-              looking to leverage extensive experience in front-end technologies and cloud services in a challenging and dynamic environment.
+      <main id="main-content">
+        <section className="hero" id="top">
+          <div className="hero-copy">
+            <p className="hero-intro">
+              Senior software engineer in Hyderabad. I build complete product systems, from startup logistics and hotel operations to enterprise observability.
             </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -60 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <motion.div
-                whileHover={{ 
-                  scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(34, 197, 94, 0.1)"
-                }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="p-8 glass-effect">
-                  <div className="flex items-center mb-6">
-                    <motion.img
-                      src={profileImage}
-                      alt="Sunil Bhuvanapalli"
-                      className="w-20 h-20 rounded-full mr-6 object-cover"
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <div>
-                      <h3 className="text-2xl font-bold gradient-text">Professional Journey</h3>
-                      <p className="text-muted-foreground">Senior Software Engineer</p>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    With over 10 years of experience in software development, I've had the privilege of working with 
-                    industry leaders like New Relic, Accenture, and Cleartrip. My expertise spans across modern web 
-                    technologies, mobile app development, and cloud services.
-                  </p>
-                  <p className="text-muted-foreground mb-6 leading-relaxed">
-                    I'm proficient in a variety of programming languages and tools with a commitment to staying current 
-                    with emerging technologies. My passion lies in creating scalable, user-centric applications that 
-                    make a real impact.
-                  </p>
-                  
-                  <div className="grid grid-cols-2 gap-4 mt-8">
-                    <motion.div 
-                      className="text-center"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <motion.div 
-                        className="text-3xl font-bold text-primary mb-2"
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2 }}
-                        viewport={{ once: true }}
-                      >
-                        10+
-                      </motion.div>
-                      <div className="text-sm text-muted-foreground">Years Experience</div>
-                    </motion.div>
-                    <motion.div 
-                      className="text-center"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <motion.div 
-                        className="text-3xl font-bold text-primary mb-2"
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        viewport={{ once: true }}
-                      >
-                        10+
-                      </motion.div>
-                      <div className="text-sm text-muted-foreground">Projects Completed</div>
-                    </motion.div>
-                  </div>
-                </Card>
-              </motion.div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, x: 60 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              {[
-                { Icon: MapPin, title: "Location", content: "Hyderabad, India" },
-                { Icon: Phone, title: "Contact", content: "+91 94912 22848" },
-                { 
-                  Icon: Award, 
-                  title: "Certifications", 
-                  content: ["Microsoft Azure Fundamentals", "Power Platform Fundamentals", "Java SE 6 Programmer Certified", "Accenture Technology Architect"]
-                }
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ 
-                    scale: 1.02,
-                    boxShadow: "0 10px 30px rgba(34, 197, 94, 0.1)"
-                  }}
-                >
-                  <Card className="p-6 glass-effect">
-                    <div className="flex items-center mb-4">
-                      <motion.div
-                        whileHover={{ rotate: 360, scale: 1.2 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <item.Icon className="h-5 w-5 text-primary mr-3" />
-                      </motion.div>
-                      <span className="font-semibold">{item.title}</span>
-                    </div>
-                    {Array.isArray(item.content) ? (
-                      <div className="space-y-2">
-                        {item.content.map((cert, certIndex) => (
-                          <motion.div
-                            key={certIndex}
-                            initial={{ opacity: 0, x: -20 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ delay: certIndex * 0.1 }}
-                            viewport={{ once: true }}
-                          >
-                            <Badge variant="secondary" className="mr-2 mb-2">{cert}</Badge>
-                          </motion.div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground">{item.content}</p>
-                    )}
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
+            <h1>
+              I make complex
+              <span>software feel clear.</span>
+            </h1>
           </div>
-        </div>
-      </section>
 
-      {/* Skills Section with enhanced progress animations */}
-      <section id="skills" className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Technical Skills</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Proficient in a wide range of modern technologies and frameworks
-            </p>
-          </motion.div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-8"
-          >
-            {skills.map((skill, index) => (
-              <motion.div
-                key={skill.name}
-                variants={fadeInUp}
-                className="space-y-3"
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{skill.name}</span>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                  >
-                    <Badge variant="outline">{skill.category}</Badge>
-                  </motion.div>
-                </div>
-                <div className="relative">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${skill.level}%` }}
-                    transition={{ duration: 1, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="absolute top-0 left-0 h-2 bg-gradient-to-r from-primary to-accent rounded-full"
-                  />
-                  <div className="w-full h-2 bg-muted rounded-full" />
-                  <motion.span 
-                    className="absolute right-0 -top-6 text-sm text-muted-foreground"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: index * 0.1 + 0.5 }}
-                    viewport={{ once: true }}
-                  >
-                    {skill.level}%
-                  </motion.span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Experience Section with enhanced card animations */}
-      <section id="experience" className="py-20 bg-card/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Professional Experience</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              A journey through my career milestones and achievements
-            </p>
-          </motion.div>
-
-          <div className="space-y-8">
-            {experiences.map((exp, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -60 : 60 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ 
-                  scale: 1.02,
-                  boxShadow: "0 20px 40px rgba(34, 197, 94, 0.1)"
-                }}
-              >
-                <Card className="p-8 glass-effect hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    initial={false}
-                  />
-                  
-                  <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                      <div>
-                        <motion.h3 
-                          className="text-xl font-bold text-primary mb-1"
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                        >
-                          {exp.position}
-                        </motion.h3>
-                        <h4 className="text-lg font-semibold mb-2">{exp.company}</h4>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">{exp.duration}</p>
-                        <p className="text-sm text-muted-foreground">{exp.location}</p>
-                      </div>
-                    </div>
-                    
-                    <p className="text-muted-foreground mb-4 leading-relaxed">
-                      {exp.description}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {exp.technologies.map((tech, techIndex) => (
-                        <motion.div
-                          key={tech}
-                          initial={{ opacity: 0, scale: 0 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: techIndex * 0.05 }}
-                          viewport={{ once: true }}
-                          whileHover={{ scale: 1.1 }}
-                        >
-                          <Badge variant="secondary">
-                            {tech}
-                          </Badge>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+          <div className="hero-record" aria-label="Professional summary">
+            <div className="portrait-wrap">
+              <img src={profileImage} alt="Sunil Bhuvanapalli" />
+              <span className="portrait-cut" aria-hidden="true" />
+            </div>
+            <dl>
+              <div>
+                <dt>Current</dt>
+                <dd>New Relic</dd>
+              </div>
+              <div>
+                <dt>Experience</dt>
+                <dd>10+ years</dd>
+              </div>
+              <div>
+                <dt>Focus</dt>
+                <dd>Product systems, web + mobile</dd>
+              </div>
+            </dl>
           </div>
-        </div>
-      </section>
 
-      {/* Projects Section with actual projects */}
-      <section id="projects" className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
+          <button className="hero-scroll" onClick={() => goTo('work')}>
+            See selected work <Arrow direction="down" />
+          </button>
+
+          <Motion.div
+            className="hero-artifact"
+            animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Featured Projects</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Showcase of my recent work and contributions
-            </p>
-          </motion.div>
-          
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
+            <span className="artifact-index">FIELD NOTE / SHYFT</span>
+            <SystemDiagram type="shyft" compact />
+            <p>A point-to-point delivery system built across both sides of the journey.</p>
+          </Motion.div>
+        </section>
+
+        <section className="proof-strip" aria-label="Career highlights">
+          <p><span>Built</span> point-to-point logistics at startup speed</p>
+          <p><span>Owned</span> a complete hotel CMS and supporting APIs</p>
+          <p><span>Now</span> shaping enterprise APM experiences at New Relic</p>
+        </section>
+
+        <section className="work" id="work">
+          <div className="section-lead">
+            <h2>Selected work</h2>
+            <p>Three operating environments: an early startup, global travel products and enterprise observability. The common thread is complete product thinking.</p>
+          </div>
+
+          <div className="project-selector" role="tablist" aria-label="Selected projects">
             {projects.map((project, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                className="group"
-                whileHover={{ y: -10 }}
-                transition={{ duration: 0.3 }}
+              <button
+                key={project.number}
+                role="tab"
+                aria-selected={activeProject === index}
+                aria-controls="project-panel"
+                id={`project-tab-${index}`}
+                tabIndex={activeProject === index ? 0 : -1}
+                onClick={() => setActiveProject(index)}
+                onKeyDown={(event) => handleProjectKeyDown(event, index)}
               >
-                <Card className="overflow-hidden glass-effect hover:shadow-xl transition-all duration-300 h-full">
-                  <div className="relative overflow-hidden">
-                    <motion.img
-                      src={project.image}
-                      alt={project.title}
-                      className="w-full h-48 object-cover"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      <div className="flex space-x-4">
-                        <motion.div
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Button size="sm" variant="secondary">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View
-                          </Button>
-                        </motion.div>
-                        <motion.div
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Button size="sm" variant="outline">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Demo
-                          </Button>
-                        </motion.div>
-                      </div>
-                    </motion.div>
-                    {project.featured && (
-                      <motion.div
-                        className="absolute top-4 right-4"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <Badge className="bg-primary text-primary-foreground">
-                          <Star className="h-3 w-3 mr-1" />
-                          Featured
-                        </Badge>
-                      </motion.div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <Badge variant="outline" className="text-xs">
-                        {project.category}
-                      </Badge>
-                    </div>
-                    
-                    <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">
-                      {project.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground mb-4 text-sm leading-relaxed">
-                      {project.description}
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {project.technologies.map((tech, techIndex) => (
-                        <motion.div
-                          key={tech}
-                          initial={{ opacity: 0, scale: 0 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: techIndex * 0.05 }}
-                          viewport={{ once: true }}
-                        >
-                          <Badge variant="secondary" className="text-xs">
-                            {tech}
-                          </Badge>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
+                <span>{project.number}</span>
+                {project.client}
+              </button>
             ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contact Section with enhanced interactivity */}
-      <section id="contact" className="py-20 bg-card/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Get In Touch</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Let's discuss opportunities and collaborations
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 60 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto"
-          >
-            <motion.div
-              whileHover={{ 
-                scale: 1.02,
-                boxShadow: "0 25px 50px rgba(34, 197, 94, 0.1)"
-              }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="p-8 glass-effect">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                  {[
-                    { Icon: Mail, title: "Email", content: "pavanksunil@gmail.com", href: "mailto:pavanksunil@gmail.com" },
-                    { Icon: Phone, title: "Phone", content: "+91 94912 22848", href: "tel:+919491222848" },
-                    { Icon: Linkedin, title: "LinkedIn", content: "Connect with me", href: "https://linkedin.com/in/sunilbhuvanapalli" }
-                  ].map((contact, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                      whileHover={{ scale: 1.1, y: -5 }}
-                      className="group"
-                    >
-                      <motion.div
-                        whileHover={{ rotate: 360 }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <contact.Icon className="h-8 w-8 text-primary mx-auto mb-4 group-hover:text-accent transition-colors" />
-                      </motion.div>
-                      <h3 className="font-semibold mb-2">{contact.title}</h3>
-                      <motion.a 
-                        href={contact.href}
-                        target={contact.href.startsWith('mailto:') || contact.href.startsWith('tel:') ? '_self' : '_blank'}
-                        rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        {contact.content}
-                      </motion.a>
-                    </motion.div>
-                  ))}
-                </div>
-              </Card>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Enhanced Footer */}
-      <motion.footer 
-        className="py-8 border-t border-border/50 relative"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <motion.p 
-              className="text-muted-foreground"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              © 2024 Sunil Bhuvanapalli. Crafted with{' '}
-              <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="text-red-500 inline-block"
-              >
-                ❤️
-              </motion.span>
-              {' '}using React & Framer Motion.
-            </motion.p>
           </div>
+
+          <div
+            className="project-stage"
+            id="project-panel"
+            role="tabpanel"
+            aria-labelledby={`project-tab-${activeProject}`}
+          >
+            <div className="project-image">
+              {selected.visual ? (
+                <SystemDiagram type={selected.visual} />
+              ) : (
+                <img src={selected.image} alt={selected.alt} />
+              )}
+              <span>{selected.period}</span>
+            </div>
+            <article key={selected.number}>
+              <div className="project-heading">
+                <h3>{selected.title}</h3>
+                <p>{selected.client}</p>
+              </div>
+              <div className="project-summary">
+                <p>{selected.summary}</p>
+                <ul>
+                  {selected.details.map((detail) => <li key={detail}>{detail}</li>)}
+                </ul>
+                {selected.href && (
+                  <a className="project-case-link" href={selected.href}>
+                    Read the case file <Arrow direction="down" />
+                  </a>
+                )}
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section className="case-files" id="case-files">
+          <div className="case-files-intro">
+            <p>Selected case files</p>
+            <h2>Proof of ownership, not a gallery of screens.</h2>
+          </div>
+
+          {caseStudies.map((study) => (
+            <article className="case-file" id={study.id} key={study.id}>
+              <header>
+                <p>{study.index}</p>
+                <h3>{study.title}</h3>
+                <p className="case-lead">{study.lead}</p>
+              </header>
+
+              <div className="case-visual">
+                <SystemDiagram type={study.visual} />
+                <dl>
+                  {study.facts.map(([term, value]) => (
+                    <div key={term}>
+                      <dt>{term}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+
+              <div className="case-narrative">
+                {study.sections.map((section, index) => (
+                  <section key={section.title}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <h4>{section.title}</h4>
+                    <p>{section.body}</p>
+                  </section>
+                ))}
+              </div>
+
+              <div className="system-flow" aria-label={`${study.title} system scope`}>
+                {study.flow.map((step, index) => (
+                  <div key={step}>
+                    <span>{String(index + 1).padStart(2, '0')}</span>
+                    <p>{step}</p>
+                    {index < study.flow.length - 1 && <b aria-hidden="true">→</b>}
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <section className="experience" id="experience">
+          <div className="experience-title">
+            <h2>A decade of shipping, learning and leading.</h2>
+            <p>2014 - today</p>
+          </div>
+          <div className="roles">
+            {roles.map((item) => (
+              <article key={`${item.company}-${item.years}`}>
+                <p className="role-years">{item.years}</p>
+                <div>
+                  <h3>{item.company}</h3>
+                  <p>{item.role}</p>
+                </div>
+                <p className="role-note">{item.note}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="practice" id="practice">
+          <div className="practice-statement">
+            <span>How I work</span>
+            <p>Good engineering is a design practice. It makes the next decision easier for the user and the next change safer for the team.</p>
+          </div>
+          <div className="strength-list">
+            {strengths.map(([title, description], index) => (
+              <article key={title}>
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </article>
+            ))}
+          </div>
+          <div className="tool-line">
+            <p>Working set</p>
+            <div>React · React Native · TypeScript · Node.js · Redux · Next.js · Azure · MongoDB · MySQL · Elasticsearch</div>
+          </div>
+        </section>
+
+        <section className="contact" id="contact">
+          <p className="contact-side">Hyderabad, India · IST</p>
+          <div>
+            <h2>Building something operationally complex?</h2>
+            <a href="mailto:pavanksunil@gmail.com">
+              Start a conversation <Arrow />
+            </a>
+          </div>
+          <div className="contact-links">
+            <a href="https://github.com/sunilbhuvanapalli" target="_blank" rel="noreferrer">GitHub <Arrow /></a>
+            <a href="https://linkedin.com/in/sunilbhuvanapalli" target="_blank" rel="noreferrer">LinkedIn <Arrow /></a>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <div className="footer-top">
+          <p>Sunil Bhuvanapalli</p>
+          <p>Senior Software Engineer</p>
+          <p>© {new Date().getFullYear()}</p>
         </div>
-      </motion.footer>
+        <div className="footer-mark" aria-hidden="true">SUNIL</div>
+      </footer>
     </div>
   )
 }
 
 export default App
-
