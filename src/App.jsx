@@ -139,12 +139,24 @@ const roles = [
     role: 'Software Engineer',
     note: 'Built a complete hotel CMS, supporting APIs and mobile hotel experiences across two travel platforms.',
   },
+  {
+    years: '2012 - 2014',
+    company: 'Progressive Digital Media',
+    role: 'Research Analyst',
+    note: 'Conducted secondary research and analysis, using web scraping to collect and structure information for research work.',
+  },
+  {
+    years: '2011 - 2012',
+    company: 'Tech Mahindra',
+    role: 'Associate Software Engineer',
+    note: 'Started in automation testing with HP Quality Center, LoadRunner and QuickTest Professional.',
+  },
 ]
 
 const strengths = [
   ['Product engineering', 'Translate complicated product requirements into interfaces people can understand quickly.'],
   ['Front-end systems', 'Build durable React and React Native foundations that teams can extend with confidence.'],
-  ['Performance', 'Treat speed, rendering behavior and interaction quality as core product features.'],
+  ['Quality and performance', 'Bring an automation-testing foundation to speed, reliability and interaction quality.'],
   ['Technical leadership', 'Create alignment through clear architecture, pragmatic decisions and hands-on delivery.'],
 ]
 
@@ -394,7 +406,7 @@ function App() {
               </div>
               <div>
                 <dt>Experience</dt>
-                <dd>10+ years</dd>
+                <dd>Since 2011</dd>
               </div>
               <div>
                 <dt>Focus</dt>
@@ -533,8 +545,8 @@ function App() {
 
         <section className="experience" id="experience">
           <div className="experience-title">
-            <h2>A decade of shipping, learning and leading.</h2>
-            <p>2014 - today</p>
+            <h2>From quality and research to complete product systems.</h2>
+            <p>2011 - today</p>
           </div>
           <div className="roles">
             {roles.map((item) => (
